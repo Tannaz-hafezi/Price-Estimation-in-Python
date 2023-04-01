@@ -1,0 +1,145 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+import pylab as pl
+import numpy as np
+%matplotlib inline
+
+#importing the libraries
+import pandas as pd
+import numpy as np
+
+#reading the dataset
+df = pd.read_csv(r"C:\Users\tannaz hafezi\.jupyter\housePrice.csv")
+
+# Import label encoder 
+from sklearn import preprocessing
+
+# label_encoder object knows how to understand word labels. 
+label_encoder = preprocessing.LabelEncoder()
+
+# Encode labels in column  
+
+df['Area']= label_encoder.fit_transform(df['Area'])
+df['Parking']= label_encoder.fit_transform(df['Parking'])
+df['Warehouse']= label_encoder.fit_transform(df['Warehouse'])
+df['Elevator']= label_encoder.fit_transform(df['Elevator'])
+df['Address']= label_encoder.fit_transform(df['Address'])
+
+print(df.head())
+
+df.info()
+
+print(df.shape)
+
+df.hist()
+plt.show()
+
+
+# Function to calculate VIF for checking multicollinearity
+
+#import statsmodels.api
+import statsmodels as sm
+import statsmodels.api as sm
+import numpy as np
+
+def calculate_vif(data):
+    vif_df = pd.DataFrame(columns = ['Var', 'Vif'])
+    x_var_names = data.columns
+    for i in range(0, x_var_names.shape[0]):
+        y = data[x_var_names[i]]
+        x = data[x_var_names.drop([x_var_names[i]])]
+        r_squared = sm.OLS(y,x).fit().rsquared
+        vif = round(1/(1-r_squared),2)
+        vif_df.loc[i] = [x_var_names[i], vif]
+    return vif_df.sort_values(by = 'Vif', axis = 0, ascending=False, inplace=False)
+
+calculate_vif(df)
+
+#Creating train and test dataset
+msk = np.random.rand(len(df)) < 0.8
+train = df[msk]
+test = df[~msk]
+
+print(train.shape) #(2776, 8)
+print(test.shape)  #(703, 8)
+
+#Simple Regression Model 
+from sklearn import linear_model
+regr = linear_model.LinearRegression()
+train_x = np.asanyarray(train[['Area','Room','Parking','Warehouse','Elevator','Address']])
+train_y = np.asanyarray(train[['Price']])
+regr.fit (train_x, train_y)
+# The coefficients
+print ('Coefficients: ', regr.coef_)
+print ('Intercept: ',regr.intercept_)
+
+plt.scatter(train.Room , train.Price,  color='blue')
+plt.xlabel("Room")
+plt.ylabel("Price")
+
+plt.scatter(train.Address , train.Address,  color='blue')
+plt.xlabel("Address")
+plt.ylabel("Price")
+
+#Evaluation
+from sklearn.metrics import r2_score
+
+test_x = np.asanyarray(test[['Area','Room','Parking','Warehouse','Elevator','Address']])
+test_y = np.asanyarray(test[['Price']])
+test_y_ = regr.predict(test_x)
+
+print("Mean absolute error: %.2f" % np.mean(np.absolute(test_y_ - test_y)))
+print("Residual sum of squares (MSE): %.2f" % np.mean((test_y_ - test_y) ** 2))
+print("R2-score: %.2f" % r2_score(test_y , test_y_) )
+
+
+#Polynomial Regression :
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn import linear_model
+
+train_x = np.asanyarray(train[['Area','Room','Parking','Warehouse','Elevator','Address']])
+train_y = np.asanyarray(train[['Price']])
+
+test_x = np.asanyarray(test[['Area','Room','Parking','Warehouse','Elevator','Address']])
+test_y = np.asanyarray(test[['Price']])
+
+
+poly = PolynomialFeatures(degree=4)
+train_x_poly = poly.fit_transform(train_x)
+train_x_poly
+
+Non Linear Regression:
+import pandas as pd
+import numpy as np
+from sklearn import model_selection
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import ElasticNet
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.svm import SVR
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from math import sqrt
+import matplotlib.pyplot as plt
+
+#Decision Trees :
+dtree = DecisionTreeRegressor(max_depth=15, min_samples_leaf=0.1, random_state=6)
+
+dtree.fit(train_x, train_y)
+
+pred_train_tree= dtree.predict(train_x)
+print("RMSE: %.2f" %np.sqrt(mean_squared_error(train_y,pred_train_tree)))
+print("R2-score: %.2f"%r2_score(train_y, pred_train_tree))
+
+
+pred_test_tree= dtree.predict(test_x)
+print("RMSPE: %.2f" % np.sqrt(mean_squared_error(test_y,pred_test_tree))) 
+print("R2-score: %.2f" % r2_score(test_y, pred_test_tree))
+
+
+
+
